@@ -69,7 +69,6 @@ jobs:
           cd librewolf-source
 
           echo "mk_add_options MOZ_PARALLEL_BUILD=3" >> assets/mozconfig.new
-          echo "ac_add_options --with-ccache=sccache" >> assets/mozconfig.new
 
           echo "===== assets/mozconfig.new ====="
           sed -n '1,200p' assets/mozconfig.new || true
