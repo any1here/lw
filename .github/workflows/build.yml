@@ -67,14 +67,14 @@ jobs:
           mkdir -p "$HOME/ccwrap/bin"
 
           cat > "$HOME/ccwrap/bin/cc" <<'EOF'
-#!/usr/bin/env bash
-exec "'"$SCCACHE_BIN"'" "'"$REAL_CC"'" "$@"
-EOF
+          #!/usr/bin/env bash
+          exec "'"$SCCACHE_BIN"'" "'"$REAL_CC"'" "$@"
+          EOF
 
           cat > "$HOME/ccwrap/bin/c++" <<'EOF'
-#!/usr/bin/env bash
-exec "'"$SCCACHE_BIN"'" "'"$REAL_CXX"'" "$@"
-EOF
+          #!/usr/bin/env bash
+          exec "'"$SCCACHE_BIN"'" "'"$REAL_CXX"'" "$@"
+          EOF
 
           chmod +x "$HOME/ccwrap/bin/cc" "$HOME/ccwrap/bin/c++"
 
