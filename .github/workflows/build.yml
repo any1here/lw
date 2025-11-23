@@ -54,19 +54,34 @@ jobs:
           echo "CMAKE_CXX_COMPILER_LAUNCHER=sccache" >> $GITHUB_ENV
         shell: bash
 
-      - name: Ensure configure finds action sccache
+      - name: Enable sccache for C/C++
         run: |
           set -euxo pipefail
           SCCACHE_BIN="${SCCACHE_PATH:-$(which sccache)}"
-
           REAL_CC="$(which cc || which clang || which gcc || echo /usr/bin/cc)"
           REAL_CXX="$(which c++ || which clang++ || which g++ || echo /usr/bin/c++)"
           echo "Using SCCACHE_BIN=$SCCACHE_BIN"
           echo "Using REAL_CC=$REAL_CC"
           echo "Using REAL_CXX=$REAL_CXX"
 
-          echo "CC=$REAL_CC" >> $GITHUB_ENV
-          echo "CXX=$REAL_CXX" >> $GITHUB_ENV
+          mkdir -p "$HOME/ccwrap/bin"
+
+          cat > "$HOME/ccwrap/bin/cc" <<'EOF'
+#!/usr/bin/env bash
+exec "'"$SCCACHE_BIN"'" "'"$REAL_CC"'" "$@"
+EOF
+
+          cat > "$HOME/ccwrap/bin/c++" <<'EOF'
+#!/usr/bin/env bash
+exec "'"$SCCACHE_BIN"'" "'"$REAL_CXX"'" "$@"
+EOF
+
+          chmod +x "$HOME/ccwrap/bin/cc" "$HOME/ccwrap/bin/c++"
+
+          echo "PATH=$HOME/ccwrap/bin:$PATH" >> $GITHUB_ENV
+          echo "CC=$HOME/ccwrap/bin/cc" >> $GITHUB_ENV
+          echo "CXX=$HOME/ccwrap/bin/c++" >> $GITHUB_ENV
+          echo "SCCACHE_COMPILER=$REAL_CC" >> $GITHUB_ENV
           echo "RUSTC_WRAPPER=$SCCACHE_BIN" >> $GITHUB_ENV
           echo "CMAKE_C_COMPILER_LAUNCHER=$SCCACHE_BIN" >> $GITHUB_ENV
           echo "CMAKE_CXX_COMPILER_LAUNCHER=$SCCACHE_BIN" >> $GITHUB_ENV
