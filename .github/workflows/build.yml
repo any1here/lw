@@ -73,6 +73,41 @@ jobs:
           echo "PATH=$HOME/ccwrap/bin:$PATH" >> $GITHUB_ENV
         shell: bash
 
+      - name: Debug compiler resolution & mozbuild probes
+        run: |
+          echo "==== env summary ===="
+          echo "PATH=$PATH"
+          echo "SCCACHE_PATH=${SCCACHE_PATH:-$(which sccache || true)}"
+          echo "SCCACHE_DIR=${SCCACHE_DIR:-$HOME/.cache/sccache}"
+          echo "SCCACHE_GHA_ENABLED=${SCCACHE_GHA_ENABLED:-unset}"
+          echo "RUSTC_WRAPPER=${RUSTC_WRAPPER:-unset}"
+          echo "CMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER:-unset}"
+          echo
+          echo "==== which/links ===="
+          which clang || true
+          ls -l "$(which clang 2>/dev/null || true)" || true
+          which clang++ || true
+          ls -l "$(which clang++ 2>/dev/null || true)" || true
+          which cc || true
+          ls -l "$(which cc 2>/dev/null || true)" || true
+          which c++ || true
+          ls -l "$(which c++ 2>/dev/null || true)" || true
+          echo
+          echo "==== mozbuild/mozconfig probe places ===="
+
+          ls -la /home/runner/.mozbuild || true
+          ls -la /home/runner/.mozbuild/clang || true
+          ls -la /home/runner/.mozbuild/clang/bin || true
+          echo
+          echo "==== sample configure probe ===="
+
+          /bin/bash -lc 'printf "int main(){return 0;}\n" > conftest.c && \
+            /bin/bash -lc "clang -v -x c -c conftest.c -o /dev/null" 2>&1 | sed -n "1,200p"' || true
+          echo
+          echo "==== sccache stats ===="
+          ${SCCACHE_PATH:-sccache} --show-stats || true
+        shell: bash
+
       - name: Run build (fetch, patch-check, bsys6 test-linux, copy artifact)
         env:
           SCCACHE_PATH: ${{ env.SCCACHE_PATH }}
