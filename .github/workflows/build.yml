@@ -46,20 +46,6 @@ jobs:
         with:
           version: "v0.12.0"
 
-      - name: Configure sccache environment
-        run: |
-          echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
-          echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
-          echo "CMAKE_C_COMPILER_LAUNCHER=sccache" >> $GITHUB_ENV
-          echo "CMAKE_CXX_COMPILER_LAUNCHER=sccache" >> $GITHUB_ENV
-        shell: bash
-
-      - name: Verify sccache binary & env
-        run: |
-          echo "SCCACHE_PATH=${SCCACHE_PATH:-$(which sccache || true)}"
-          ${SCCACHE_PATH:-sccache} --version || true
-          env | grep -E 'SCCACHE|RUSTC_WRAPPER|CMAKE_C' || true
-
       - name: Run build (fetch, patch-check, bsys6 test-linux, copy artifact)
         env:
           SCCACHE_PATH: ${{ env.SCCACHE_PATH }}
@@ -69,6 +55,8 @@ jobs:
           cd librewolf-source
 
           echo "mk_add_options MOZ_PARALLEL_BUILD=3" >> assets/mozconfig.new
+          echo "ac_add_options --with-ccache=sccache" >> assets/mozconfig.new
+          
 
           echo "===== assets/mozconfig.new ====="
           sed -n '1,200p' assets/mozconfig.new || true
