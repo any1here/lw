@@ -54,63 +54,28 @@ jobs:
           echo "CMAKE_CXX_COMPILER_LAUNCHER=sccache" >> $GITHUB_ENV
         shell: bash
 
-      - name: Verify sccache binary & env
-        run: |
-          echo "SCCACHE_PATH=${SCCACHE_PATH:-$(which sccache || true)}"
-          ${SCCACHE_PATH:-sccache} --version || true
-          env | grep -E 'SCCACHE|RUSTC_WRAPPER|CMAKE_C' || true
-
-      - name: Install sccache compiler shims
+      - name: Ensure configure finds action sccache
         run: |
           set -euxo pipefail
           SCCACHE_BIN="${SCCACHE_PATH:-$(which sccache)}"
 
-          REAL_CC="/usr/bin/cc"
-          REAL_CXX="/usr/bin/c++"
-          REAL_CLANG="/usr/bin/clang"
-          REAL_CLANGPP="/usr/bin/clang++"
-          mkdir -p "$HOME/ccwrap/bin"
-      
-          cat > "$HOME/ccwrap/bin/cc" <<'SH'
-          #!/usr/bin/env bash
-          exec "@SCCACHE_BIN@" "@REAL_CC@" "$@"
-          SH
-              cat > "$HOME/ccwrap/bin/c++" <<'SH'
-          #!/usr/bin/env bash
-          exec "@SCCACHE_BIN@" "@REAL_CXX@" "$@"
-          SH
-              cat > "$HOME/ccwrap/bin/clang" <<'SH'
-          #!/usr/bin/env bash
-          exec "@SCCACHE_BIN@" "@REAL_CLANG@" "$@"
-          SH
-              cat > "$HOME/ccwrap/bin/clang++" <<'SH'
-          #!/usr/bin/env bash
-          exec "@SCCACHE_BIN@" "@REAL_CLANGPP@" "$@"
-          SH
-      
-          # Replace placeholders with actual paths
-          sed -i "s|@SCCACHE_BIN@|${SCCACHE_BIN}|g" "$HOME/ccwrap/bin/"*
-          sed -i "s|@REAL_CC@|${REAL_CC}|g" "$HOME/ccwrap/bin/"*
-          sed -i "s|@REAL_CXX@|${REAL_CXX}|g" "$HOME/ccwrap/bin/"*
-          sed -i "s|@REAL_CLANG@|${REAL_CLANG}|g" "$HOME/ccwrap/bin/"*
-          sed -i "s|@REAL_CLANGPP@|${REAL_CLANGPP}|g" "$HOME/ccwrap/bin/"*
-      
-          chmod +x "$HOME/ccwrap/bin/"*
-      
-          # Export PATH and explicit compiler vars for later steps
-          echo "PATH=$HOME/ccwrap/bin:$PATH" >> $GITHUB_ENV
-          echo "CC=$HOME/ccwrap/bin/cc" >> $GITHUB_ENV
-          echo "CXX=$HOME/ccwrap/bin/c++" >> $GITHUB_ENV
-          echo "RUSTC_WRAPPER=${SCCACHE_BIN}" >> $GITHUB_ENV
-          echo "CMAKE_C_COMPILER_LAUNCHER=${SCCACHE_BIN}" >> $GITHUB_ENV
-          echo "CMAKE_CXX_COMPILER_LAUNCHER=${SCCACHE_BIN}" >> $GITHUB_ENV
-      
-          # quick verify
-          ls -l "$HOME/ccwrap/bin"
-          "$HOME/ccwrap/bin/clang" --version || true
+          REAL_CC="$(which cc || which clang || which gcc || echo /usr/bin/cc)"
+          REAL_CXX="$(which c++ || which clang++ || which g++ || echo /usr/bin/c++)"
+          echo "Using SCCACHE_BIN=$SCCACHE_BIN"
+          echo "Using REAL_CC=$REAL_CC"
+          echo "Using REAL_CXX=$REAL_CXX"
+
+          echo "CC=$REAL_CC" >> $GITHUB_ENV
+          echo "CXX=$REAL_CXX" >> $GITHUB_ENV
+          echo "RUSTC_WRAPPER=$SCCACHE_BIN" >> $GITHUB_ENV
+          echo "CMAKE_C_COMPILER_LAUNCHER=$SCCACHE_BIN" >> $GITHUB_ENV
+          echo "CMAKE_CXX_COMPILER_LAUNCHER=$SCCACHE_BIN" >> $GITHUB_ENV
+
+          echo "PATH=$PATH"
+          which cc || true
+          which c++ || true
+          $SCCACHE_BIN --version || true
         shell: bash
-
-
 
       - name: Run build (fetch, patch-check, bsys6 test-linux, copy artifact)
         env:
