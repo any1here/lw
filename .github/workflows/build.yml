@@ -3,10 +3,6 @@ name: Build
 on:
   workflow_dispatch: {}
 
-permissions:
-  id-token: write
-  contents: read
-
 jobs:
   build:
     name: Build
@@ -45,21 +41,51 @@ jobs:
             python3-venv libgnutls28-dev libnss3-dev ninja-build clang lld \
             pigz gnupg jq rsync xz-utils
 
-      - name: Configure sccache environment
-        uses: actions/github-script@v7
-        with:
-          script: |
-            core.exportVariable('ACTIONS_RESULTS_URL', process.env.ACTIONS_RESULTS_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');    
-
       - name: Run sccache-cache (install)
         uses: mozilla-actions/sccache-action@v0.0.9
         with:
           version: "v0.12.0"
 
+      - name: Configure sccache environment
+        run: |
+          echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
+          echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
+          echo "CMAKE_C_COMPILER_LAUNCHER=sccache" >> $GITHUB_ENV
+          echo "CMAKE_CXX_COMPILER_LAUNCHER=sccache" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Verify sccache binary & env
+        run: |
+          echo "SCCACHE_PATH=${SCCACHE_PATH:-$(which sccache || true)}"
+          ${SCCACHE_PATH:-sccache} --version || true
+          env | grep -E 'SCCACHE|RUSTC_WRAPPER|CMAKE_C' || true
+
+      - name: Ensure configure finds action sccache (quick fix)
+        run: |
+          set -euxo pipefail
+          SCCACHE_BIN="${SCCACHE_PATH:-$(which sccache)}"
+          mkdir -p "$HOME/ccwrap/bin"
+          ln -sf "$SCCACHE_BIN" "$HOME/ccwrap/bin/clang"
+          ln -sf "$SCCACHE_BIN" "$HOME/ccwrap/bin/clang++"
+          ln -sf "$SCCACHE_BIN" "$HOME/ccwrap/bin/cc"
+          ln -sf "$SCCACHE_BIN" "$HOME/ccwrap/bin/c++"
+          chmod +x "$HOME/ccwrap/bin/"*
+          # export wrapper PATH and compiler vars for subsequent steps
+          echo "PATH=$HOME/ccwrap/bin:$PATH" >> $GITHUB_ENV
+          echo "CC=$HOME/ccwrap/bin/cc" >> $GITHUB_ENV
+          echo "CXX=$HOME/ccwrap/bin/c++" >> $GITHUB_ENV
+          echo "RUSTC_WRAPPER=$SCCACHE_BIN" >> $GITHUB_ENV
+          echo "CMAKE_C_COMPILER_LAUNCHER=$SCCACHE_BIN" >> $GITHUB_ENV
+          echo "CMAKE_CXX_COMPILER_LAUNCHER=$SCCACHE_BIN" >> $GITHUB_ENV
+          # quick verification
+          echo "SCCACHE_BIN=$SCCACHE_BIN"
+          ls -l "$HOME/ccwrap/bin"
+          "$HOME/ccwrap/bin/clang" --version || true
+        shell: bash
+
+
       - name: Run build (fetch, patch-check, bsys6 test-linux, copy artifact)
         env:
-          SCCACHE_GHA_ENABLED: true
           SCCACHE_PATH: ${{ env.SCCACHE_PATH }}
         run: |
           set -euo pipefail
@@ -67,7 +93,6 @@ jobs:
           cd librewolf-source
 
           echo "mk_add_options MOZ_PARALLEL_BUILD=3" >> assets/mozconfig.new
-          echo "ac_add_options --with-ccache=sccache" >> assets/mozconfig.new
 
           echo "===== assets/mozconfig.new ====="
           sed -n '1,200p' assets/mozconfig.new || true
