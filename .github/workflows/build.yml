@@ -75,7 +75,7 @@ jobs:
 
           make test-linux
 
-          ARTIFACT=$(find . -type f -name '*.tar.xz' -print | head -n 1 || true)
+          ARTIFACT=$(find . -type f -name 'librewolf-*-linux-*-package.tar.xz' -print -quit)
           if [ -n "$ARTIFACT" ]; then
             echo "Found artifact: $ARTIFACT"
             cp -v "$ARTIFACT" "$GITHUB_WORKSPACE/librewolf-linux.tar.xz"
