@@ -49,6 +49,11 @@ jobs:
       - name: Configure sccache environment
         run: |
           echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
+          echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
+          echo "CMAKE_C_COMPILER_LAUNCHER=sccache" >> "$GITHUB_ENV"
+          echo "CMAKE_CXX_COMPILER_LAUNCHER=sccache" >> "$GITHUB_ENV"
+          echo "CC=sccache clang" >> "$GITHUB_ENV"
+          echo "CXX=sccache clang++" >> "$GITHUB_ENV"
           echo "SCCACHE_IDLE_TIMEOUT=0" >> "$GITHUB_ENV"
         shell: bash
 
@@ -59,7 +64,6 @@ jobs:
           cd librewolf-source
 
           echo "mk_add_options MOZ_PARALLEL_BUILD=2" >> assets/mozconfig.new
-          echo "ac_add_options --with-ccache=sccache" >> assets/mozconfig.new
 
           echo "===== assets/mozconfig.new ====="
           sed -n '1,200p' assets/mozconfig.new || true
