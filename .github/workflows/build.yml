@@ -39,7 +39,7 @@ jobs:
             zlib1g-dev libbz2-dev liblzma-dev libzip-dev libpng-dev libjpeg-dev \
             libfreetype6-dev pkg-config automake libtool nasm ccache \
             python3-venv libgnutls28-dev libnss3-dev ninja-build clang lld \
-            pigz gnupg jq rsync xz-utils
+            pigz gnupg jq rsync xz-utils xvfb
 
       - name: Run sccache-cache (install)
         uses: mozilla-actions/sccache-action@v0.0.9
@@ -57,6 +57,11 @@ jobs:
           echo "SCCACHE_IDLE_TIMEOUT=0" >> "$GITHUB_ENV"
         shell: bash
 
+      - name: Start Xvfb and set DISPLAY
+        run: |
+          Xvfb :99 -screen 0 1280x1024x24 &>/tmp/xvfb.log &
+          echo "DISPLAY=:99" >> $GITHUB_ENV
+
       - name: Run build (fetch, patch-check, bsys6 test-linux, copy artifact)
         run: |
           set -euo pipefail
@@ -70,8 +75,6 @@ jobs:
           echo "===== assets/mozconfig.new ====="
           sed -n '1,200p' assets/mozconfig.new || true
           echo "===== end mozconfig.new ====="
-
-          echo "MOZ_HEADLESS=1" >> $GITHUB_ENV
 
           make fetch
 
