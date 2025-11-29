@@ -71,6 +71,8 @@ jobs:
           sed -n '1,200p' assets/mozconfig.new || true
           echo "===== end mozconfig.new ====="
 
+          echo "MOZ_HEADLESS=1" >> $GITHUB_ENV
+
           make fetch
 
           sh -c "./scripts/check-patchfail.sh"
