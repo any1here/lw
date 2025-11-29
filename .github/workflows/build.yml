@@ -41,22 +41,6 @@ jobs:
             python3-venv libgnutls28-dev libnss3-dev ninja-build clang lld \
             pigz gnupg jq rsync xz-utils xvfb
 
-      - name: Run sccache-cache (install)
-        uses: mozilla-actions/sccache-action@v0.0.9
-        with:
-          version: "v0.12.0"
-
-      - name: Configure sccache environment
-        run: |
-          echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
-          echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
-          echo "CMAKE_C_COMPILER_LAUNCHER=sccache" >> "$GITHUB_ENV"
-          echo "CMAKE_CXX_COMPILER_LAUNCHER=sccache" >> "$GITHUB_ENV"
-          echo "CC=sccache clang" >> "$GITHUB_ENV"
-          echo "CXX=sccache clang++" >> "$GITHUB_ENV"
-          echo "SCCACHE_IDLE_TIMEOUT=0" >> "$GITHUB_ENV"
-        shell: bash
-
       - name: Start Xvfb and set DISPLAY
         run: |
           Xvfb :99 -screen 0 1280x1024x24 &>/tmp/xvfb.log &
@@ -90,8 +74,6 @@ jobs:
             echo "No .tar.xz found from test-linux"
             exit 1
           fi
-      - name: sccache show-stats
-        run: ${SCCACHE_PATH:-sccache} --show-stats || true
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
