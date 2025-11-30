@@ -13,7 +13,7 @@ jobs:
         with:
           root-reserve-mb: 4096
           temp-reserve-mb: 2048
-          swap-size-mb: 16384
+          swap-size-mb: 32768
           remove-dotnet: 'true'
           remove-android: 'true'
           remove-haskell: 'true'
@@ -52,7 +52,7 @@ jobs:
           git clone --branch fix-rfp --single-branch --recursive https://codeberg.org/any1here/source.git librewolf-source
           cd librewolf-source
 
-          echo "mk_add_options MOZ_PARALLEL_BUILD=1" >> assets/mozconfig.new
+          echo "mk_add_options MOZ_PARALLEL_BUILD=2" >> assets/mozconfig.new
           echo "ac_add_options --enable-lto=cross" >> assets/mozconfig.new
           echo "ac_add_options MOZ_PGO=1" >> assets/mozconfig.new
 
