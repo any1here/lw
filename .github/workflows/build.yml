@@ -65,7 +65,7 @@ jobs:
           echo "0" > release
           echo "146.0b9" > version
           
-          echo "mk_add_options MOZ_PARALLEL_BUILD=1" >> assets/mozconfig.new
+          echo "mk_add_options MOZ_PARALLEL_BUILD=2" >> assets/mozconfig.new
           echo "===== assets/mozconfig.new ====="
           sed -n '1,200p' assets/mozconfig.new || true
           echo "===== end mozconfig.new ====="
