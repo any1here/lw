@@ -59,7 +59,7 @@ jobs:
       - name: Run build (fetch, patch-check, bsys6 test-linux, copy artifact)
         run: |
           set -euo pipefail
-          git clone --branch b --single-branch --recursive https://codeberg.org/any1here/source.git librewolf-source
+          git clone --branch info --single-branch --recursive https://codeberg.org/any1here/source.git librewolf-source
           cd librewolf-source
 
           echo "0" > release
