@@ -59,11 +59,8 @@ jobs:
       - name: Run build (fetch, patch-check, bsys6 test-linux, copy artifact)
         run: |
           set -euo pipefail
-          git clone --branch dot --single-branch --recursive https://codeberg.org/any1here/source/ librewolf-source
+          git clone --branch ubo --single-branch --recursive https://codeberg.org/any1here/source/ librewolf-source
           cd librewolf-source
-
-          echo "1" > release
-          echo "146.0" > version
           
           echo "mk_add_options MOZ_PARALLEL_BUILD=2" >> assets/mozconfig.new
           echo "===== assets/mozconfig.new ====="
