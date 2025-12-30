@@ -68,7 +68,7 @@ jobs:
           echo "===== end mozconfig.new ====="
           make fetch
           sh -c "./scripts/check-patchfail.sh"
-          make test-linux
+          make test-beta FF_BETA_SUFFIX=b8
           ARTIFACT=$(find . -type f -name 'librewolf-*-linux-*-package.tar.xz' -print -quit)
           if [ -n "$ARTIFACT" ]; then
             echo "Found artifact: $ARTIFACT"
