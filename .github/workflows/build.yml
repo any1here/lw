@@ -66,7 +66,7 @@ jobs:
           echo "===== assets/mozconfig.new ====="
           sed -n '1,200p' assets/mozconfig.new || true
           echo "===== end mozconfig.new ====="
-          make test-beta FF_BETA_SUFFIX=b8
+          make test-beta FF_BETA_SUFFIX=b9
           ARTIFACT=$(find . -type f -name 'librewolf-*-linux-*-package.tar.xz' -print -quit)
           if [ -n "$ARTIFACT" ]; then
             echo "Found artifact: $ARTIFACT"
