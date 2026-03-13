@@ -1,0 +1,13 @@
+name: Run
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  run:
+    name: linux
+    runs-on: macos-26-intel
+    steps:
+      - name: Get artifact
+        run: echo "test"
+      
