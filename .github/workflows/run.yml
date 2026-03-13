@@ -6,8 +6,9 @@ on:
 jobs:
   run:
     name: linux
-    runs-on: macos-26-intel
+    runs-on: ubuntu-24.04
     steps:
-      - name: Get artifact
-        run: echo "test"
-      
+      - name: Deps
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install xfvb
